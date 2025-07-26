@@ -43,7 +43,7 @@ client.on('messageCreate', message => {
         message.channel.send(messages.help);
     }
 
-    if (command === 'serverstart' && isAdmin(message.author.id)) {
+    if (command === 'serverstart') {
         if (startServer()) {
             message.channel.send('Starting Server');
         } else {
@@ -62,7 +62,7 @@ client.on('messageCreate', message => {
     if (command === 'whitelist') {
         const username = removeRiskyCharacters(args[0]);
         if (!isValidName(username)) return;
-        if (sendCommand(`op ${username}`)) {
+        if (sendCommand(`whitelist add ${username}`)) {
             message.channel.send('ok');
         } else {
             message.channel.send('nope');
@@ -72,7 +72,7 @@ client.on('messageCreate', message => {
     if (command === 'rmwhitelist') {
         const username = removeRiskyCharacters(args[0]);
         if (!isValidName(username)) return;
-        if (sendCommand(`deop ${username}`)) {
+        if (sendCommand(`whitelist remove ${username}`)) {
             message.channel.send('ok');
         } else {
             message.channel.send('nope');
