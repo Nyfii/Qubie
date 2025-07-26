@@ -1,0 +1,11 @@
+**Qubie help Menu**
+Commands start with `-qb`
+Available commands:
+- `-qb help`: Displays this  help message with a list of available commands
+- `-qb serverstart`: Starts the Server
+- `-qb serverstop`: Stops the Server safely
+- `-qb whitelist <PlayerName>`: Adds a player to the Server whitelist
+- `-qb rmwhitelist <PlayerName>`: Removes a player from the Server whitelist
+- `-qb log`: Shows the last 10 Log Messages
+- `-qb status`: Shows how many servers are on the player
+- `-qb health`: Displays server health

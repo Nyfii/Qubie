@@ -1,3 +1,7 @@
+# Minecraft Server
+minecraft_server/
+admins.txt
+
 # Logs
 logs
 *.log
