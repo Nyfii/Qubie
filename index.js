@@ -3,33 +3,39 @@ import dotenv from 'dotenv'
 import { readFileSync } from 'fs'
 import { startServer, stopServer, sendCommand, getLog, getWhitelist, getPlayerInfo } from './mc.js'
 
-const messages = {
-    "help": readFileSync('./messages/help.txt', 'utf-8')
-}
-
-dotenv.config()
-
-let adminIDs = []
-
-try {
-    const raw = readFileSync('./admins.txt', 'utf-8')
-    adminIDs = raw.split('\n').map(id => id.trim()).filter(id => id.length > 0)
-} catch (err) {
-    console.error('❌ Failed to load admin list:', err)
-}
-
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
         GatewayIntentBits.MessageContent
     ]
-})
+});
+
+dotenv.config()
+
+const messages = {
+    "help": loadRespnoseFile("help"),
+    "serverstarterr": loadRespnoseFile("serverstarterr"),
+    "serverstartperm": loadRespnoseFile("serverstartperm"),
+    "serverstartsucc": loadRespnoseFile("serverstartsucc"),
+}
+
+let privs1 = []
+const rawPrivs1 = readFileSync('./priv1.txt', 'utf-8')
+privs1 = rawPrivs1.split('\n').map(id => id.trim()).filter(id => id.length > 0)
+
+
+let privs2 = []
+const rawPrivs2 = readFileSync('./priv2.txt', 'utf-8')
+privs2 = rawPrivs2.split('\n').map(id => id.trim()).filter(id => id.length > 0)
+
+
+// --------------------------------------------------
 
 const PREFIX = '-qb';
 
 client.once('ready', () => {
-    console.log(`🟢 Qubie is online as ${client.user.tag}`);
+    console.log(`Qubie is online as ${client.user.tag}`);
 })
 
 client.on('messageCreate', message => {
@@ -41,17 +47,26 @@ client.on('messageCreate', message => {
 
     if (command === 'help') {
         message.channel.send(messages.help);
+        return;
     }
 
     if (command === 'serverstart') {
+        if (!hasPriv1(message.author.id)) {
+            message.channel.send(replaceCharactersInResponseMessage(messages.serverstartperm, message.author.username));
+            return;
+        }
         if (startServer()) {
-            message.channel.send('Starting Server');
+            message.channel.send(replaceCharactersInResponseMessage(messages.serverstartsucc, message.author.username));
         } else {
-            message.channel.send('Server is already running');
+            message.channel.send(replaceCharactersInResponseMessage(messages.serverstarterr, message.author.username));
         }
     }
 
     if (command === 'serverstop') {
+        if (!hasPriv1(message.author.id)) {
+            message.channel.send('No');
+            return;
+        }
         if (stopServer()) {
             message.channel.send('Stopping Server');
         } else {
@@ -70,6 +85,10 @@ client.on('messageCreate', message => {
     }
 
     if (command === 'rmwhitelist') {
+        if (!hasPriv2(message.author.id)) {
+            message.channel.send('No');
+            return;
+        }
         const username = removeRiskyCharacters(args[0]);
         if (!isValidName(username)) return;
         if (sendCommand(`whitelist remove ${username}`)) {
@@ -80,6 +99,10 @@ client.on('messageCreate', message => {
     }
 
     if (command === 'whitelistlist') {
+        if (!hasPriv2(message.author.id)) {
+            message.channel.send('No');
+            return;
+        }
         const whitelist = getWhitelist();
         if (whitelist.length === 0) {
             message.channel.send('Whitelist is currently empty.');
@@ -102,6 +125,14 @@ client.on('messageCreate', message => {
     }
 });
 
+function replaceCharactersInResponseMessage(message, userName) {
+    return message.replace('{{ Username }}', userName);
+}
+
+function loadRespnoseFile(name) {
+    return readFileSync(`./messages/${name}.txt`, 'utf-8')
+}
+
 function removeRiskyCharacters(input) {
     return input.replace(/[<>@`]/g, '');
 }
@@ -110,8 +141,12 @@ function isValidName(input) {
     return /^[a-zA-Z0-9_]{3,16}$/.test(input);
 }
 
-function isAdmin(userId) {
-    return adminIDs.includes(userId)
+function hasPriv1(userId) {
+    return privs1.includes(userId)
+}
+
+function hasPriv2(userId) {
+    return privs2.includes(userId);
 }
 
 client.login(process.env.DISCORD_TOKEN);
